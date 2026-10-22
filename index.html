@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="km">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>កម្មវិធីបង្កើតប័ណ្ណសម្គាល់ខ្លួនសិស្ស - លោកគ្រូ នាង នី</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Libraries for PDF and Download -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Moul&display=swap"
+        rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Battambang', system-ui, -apple-system, sans-serif;
+            background-color: #f9fafb;
+        }
+
+        .font-moul {
+            font-family: 'Moul', serif;
+        }
+
+        .font-battambang {
+            font-family: 'Battambang', system-ui, sans-serif;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Card Double Border Style */
+        .card-container {
+            border-style: double;
+            border-width: 16px;
+            border-color: #accfe3;
+        }
+
+        /* Scale down card for grid view */
+        .card-grid-item {
+            transform-origin: top left;
+            transform: scale(0.65);
+            /* Adjust scale as needed */
+            margin-bottom: -230px;
+            /* Compensate for scaled height */
+            margin-right: -160px;
+            /* Compensate for scaled width */
+            transition: all 0.2s ease-in-out;
+        }
+
+        .card-grid-item:hover {
+            transform: scale(0.67);
+            z-index: 50;
+        }
+
+        @media (min-width: 1536px) {
+            .card-grid-item {
+                transform: scale(0.8);
+                margin-bottom: -130px;
+                margin-right: -90px;
+            }
+
+            .card-grid-item:hover {
+                transform: scale(0.82);
+            }
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col text-gray-800">
+
+    <!-- Loading Overlay for PDF Generation -->
+    <div id="loading-overlay"
+        class="fixed inset-0 bg-gray-900 bg-opacity-80 z-[100] hidden flex-col items-center justify-center text-white font-battambang">
+        <div class="w-16 h-16 border-4 border-blue-400 border-t-white rounded-full animate-spin mb-4"></div>
+        <h2 class="text-2xl font-bold font-moul mb-2">កំពុងរៀបចំឯកសារ PDF...</h2>
+        <p class="text-lg">សូមរង់ចាំបន្តិច! កំពុងដំណើរការកាតសិស្សទី <span id="loading-current"
+                class="font-bold text-yellow-300">១</span> នៃ <span id="loading-total"
+                class="font-bold text-yellow-300">១០</span></p>
+    </div>
+
+    <!-- Header -->
+    <header class="bg-blue-800 text-white p-4 shadow-md relative flex items-center justify-center min-h-[80px]">
+        <button onclick="window.location.href='../../index.html'"
+            class="absolute left-4 bg-blue-700 hover:bg-blue-600 text-white px-4 py-1.5 rounded-md text-sm font-battambang transition flex items-center gap-2 border border-blue-600">
+            <span>←</span> ត្រឡប់
+        </button>
+        <div class="text-center">
+            <h1 class="text-2xl font-moul tracking-wide">កម្មវិធីបង្កើតប័ណ្ណសម្គាល់ខ្លួនសិស្ស</h1>
+            <p class="font-battambang mt-1 text-blue-200 text-sm">រៀបចំដោយ លោកគ្រូ នាង នី</p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow p-4 md:p-8 flex flex-col gap-8 max-w-[1600px] mx-auto w-full">
+
+        <!-- Top Section: Controls and Active Preview -->
+        <div class="flex flex-col lg:flex-row gap-8 w-full">
+
+            <!-- Left Panel: Form Controls -->
+            <section class="w-full lg:w-1/2 bg-white rounded-xl shadow-lg p-6 border border-gray-200 h-fit"
+                id="student-form-section">
+
+                <!-- CSV Controls Section -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                    <h3 class="font-bold text-blue-900 mb-3 text-sm font-moul">១. បញ្ចូលទិន្នន័យសិស្ស (CSV)</h3>
+                    <div class="flex flex-wrap items-center gap-3">
+                        <button id="btn-csv-template"
+                            class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded shadow-sm text-sm flex items-center gap-2 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                <polyline points="7 10 12 15 17 10" />
+                                <line x1="12" x2="12" y1="15" y2="3" />
+                            </svg>
+                            ទាញយកគំរូ CSV
+                        </button>
+
+                        <label
+                            class="bg-white hover:bg-gray-50 text-blue-800 px-3 py-2 rounded shadow-sm text-sm flex items-center gap-2 transition-colors cursor-pointer border border-blue-300">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                <polyline points="17 8 12 3 7 8" />
+                                <line x1="12" x2="12" y1="3" y2="15" />
+                            </svg>
+                            បញ្ចូលឯកសារ CSV
+                            <input type="file" id="in-csv" accept=".csv" class="hidden" />
+                        </label>
+                        <button id="btn-clear-data"
+                            class="bg-gray-500 hover:bg-gray-600 text-white px-3 py-2 rounded shadow-sm text-sm flex items-center gap-2 transition-colors hidden">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M3 6h18" />
+                                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                            </svg>
+                            សម្អាតទិន្នន័យ
+                        </button>
+                    </div>
+
+                    <!-- Student Dropdown -->
+                    <div id="student-selector-container" class="mt-4 hidden border-t border-blue-200 pt-4">
+                        <label class="block text-sm font-bold text-gray-700 mb-1">ជ្រើសរើសឈ្មោះសិស្សដើម្បីរៀបចំ៖</label>
+                        <select id="student-dropdown"
+                            class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none font-battambang bg-white cursor-pointer shadow-sm text-blue-900 font-bold">
+                            <!-- Options will be populated via JS -->
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Download Actions -->
+                <div class="flex justify-between items-center mb-4 border-b pb-4">
+                    <h2 class="text-lg font-bold text-gray-800 font-moul">២. ទិន្នន័យសម្រាប់សិស្សម្នាក់ៗ</h2>
+                    <div class="flex gap-2">
+                        <button id="btn-download-png"
+                            class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded shadow-md transition-all flex items-center gap-2 text-sm font-bold">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+                                <circle cx="9" cy="9" r="2" />
+                                <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+                            </svg>
+                            ទាញយក ១ (PNG)
+                        </button>
+                        <button id="btn-download-pdf"
+                            class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded shadow-md transition-all flex items-center gap-2 text-sm font-bold hidden">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                <polyline points="14 2 14 8 20 8" />
+                                <line x1="16" x2="8" y1="13" y2="13" />
+                                <line x1="16" x2="8" y1="17" y2="17" />
+                                <polyline points="10 9 9 9 8 9" />
+                            </svg>
+                            ទាញយកទាំងអស់ (PDF)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Form Fields -->
+                <form id="student-form" class="space-y-4">
+                    <!-- Global Settings -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">មន្ទីរអប់រំ</label>
+                            <input type="text" id="in-department" value="មន្ទីរអប់រំ យុវជន និងកីឡា"
+                                class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none transition-shadow" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">ខេត្ត</label>
+                            <input type="text" id="in-province" value="ខេត្តតាកែវ"
+                                class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none transition-shadow" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">ឆ្នាំសិក្សា</label>
+                            <input type="text" id="in-year" value="២០២៥ - ២០២៦"
+                                class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none transition-shadow" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">ឈ្មោះសាលា</label>
+                            <input type="text" id="in-school" value="ហ៊ុនសែន តាកែវ"
+                                class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none transition-shadow" />
+                        </div>
+                    </div>
+
+                    <!-- Individual Student Data -->
+                    <div
+                        class="grid grid-cols-1 md:grid-cols-2 gap-4 border-l-4 border-blue-500 pl-4 py-2 bg-white rounded-r-lg shadow-sm">
+                        <div class="col-span-1 md:col-span-2">
+                            <label class="block text-sm font-bold text-gray-700 mb-1">គោត្តនាម និងនាម</label>
+                            <input type="text" id="in-name" data-key="name" placeholder="ឧ. សុខ សាន់"
+                                class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none transition-shadow student-input" />
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">ភេទ</label>
+                            <input type="text" id="in-gender" data-key="gender" placeholder="ឧ. ប្រុស"
+                                class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none transition-shadow student-input" />
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">ថ្នាក់ទី</label>
+                            <input type="text" id="in-grade" data-key="grade" placeholder="ឧ. ១២ ក"
+                                class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none transition-shadow student-input" />
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">ថ្ងៃខែឆ្នាំកំណើត</label>
+                            <input type="text" id="in-dob" data-key="dob" placeholder="ឧ. ០១ មករា ២០០៨"
+                                class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none transition-shadow student-input" />
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">អត្តលេខ</label>
+                            <input type="text" id="in-id" data-key="studentid" placeholder="ឧ. ១២៣៤៥"
+                                class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none transition-shadow student-input" />
+                        </div>
+                    </div>
+
+                    <!-- Dates -->
+                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 space-y-3">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">កាលបរិច្ឆេទ (ចន្ទគតិ)</label>
+                            <input type="text" id="in-date-kh"
+                                value="ថ្ងៃសៅរ៍ ១៥កើត ខែមិគសិរ ឆ្នាំខាល ចត្វាស័ក ព.ស. ២៥៦៦"
+                                class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none transition-shadow" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">កាលបរិច្ឆេទ (សុរិយគតិ)</label>
+                            <input type="text" id="in-date-en" value="ថ្ងៃទី២១ ខែមិថុនា ឆ្នាំ២០២៦"
+                                class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none transition-shadow" />
+                        </div>
+                        <!-- ឈ្មោះនាយកសាលា -->
+                        <div class="mt-2 pt-2 border-t border-gray-200">
+                            <label class="block text-sm font-bold text-gray-700 mb-1">ឈ្មោះនាយកសាលា</label>
+                            <input type="text" id="in-principal" placeholder="ឧ. កែវ រតនា"
+                                class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none transition-shadow text-red-600 font-bold" />
+                        </div>
+                    </div>
+
+                    <!-- Images Upload -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div
+                            class="relative border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:bg-gray-50 transition-colors group cursor-pointer bg-white">
+                            <input type="file" id="in-logo" accept="image/*"
+                                class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                title="Logo នេះប្រើសម្រាប់កាតទាំងអស់" />
+                            <div
+                                class="flex flex-col items-center justify-center gap-2 text-gray-500 group-hover:text-blue-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                    <polyline points="17 8 12 3 7 8" />
+                                    <line x1="12" x2="12" y1="3" y2="15" />
+                                </svg>
+                                <span class="text-sm font-bold">Logo (ប្រើទូទៅ)</span>
+                            </div>
+                        </div>
+
+                        <div
+                            class="relative border-2 border-dashed border-blue-300 bg-blue-50 rounded-lg p-6 text-center hover:bg-blue-100 transition-colors group cursor-pointer shadow-inner">
+                            <input type="file" id="in-photo" accept="image/*"
+                                class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                title="រូបថតសម្រាប់តែសិស្សម្នាក់នេះប៉ុណ្ណោះ" />
+                            <div class="flex flex-col items-center justify-center gap-2 text-blue-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+                                    <circle cx="9" cy="9" r="2" />
+                                    <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+                                </svg>
+                                <span class="text-sm font-bold">រូបថតសិស្សនេះ (៤x៦)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sign & Stamp Uploads -->
+                    <div class="grid grid-cols-2 gap-4 mt-4">
+                        <div
+                            class="relative border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:bg-gray-50 transition-colors group cursor-pointer bg-white">
+                            <input type="file" id="in-sign" accept="image/png"
+                                class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                title="សូមប្រើរូបភាព PNG ដែលមានផ្ទៃថ្លា" />
+                            <div
+                                class="flex flex-col items-center justify-center gap-1 text-gray-500 group-hover:text-purple-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path d="M12 20h9" />
+                                    <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                                </svg>
+                                <span class="text-xs font-bold">ហត្ថលេខា (PNG)</span>
+                            </div>
+                        </div>
+
+                        <div
+                            class="relative border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:bg-gray-50 transition-colors group cursor-pointer bg-white">
+                            <input type="file" id="in-stamp" accept="image/png"
+                                class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                title="សូមប្រើរូបភាព PNG ដែលមានផ្ទៃថ្លា" />
+                            <div
+                                class="flex flex-col items-center justify-center gap-1 text-gray-500 group-hover:text-red-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <circle cx="12" cy="12" r="6" />
+                                    <path d="M12 8v4l3 3" />
+                                </svg>
+                                <span class="text-xs font-bold">ត្រាសាលា (PNG)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Position Controls for Principal Name, Sign and Stamp -->
+                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 mt-2">
+                        <p class="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">សារ៉េទីតាំង
+                            (X=ឆ្វេង/ស្តាំ, Y=លើ/ក្រោម)</p>
+
+                        <!-- គ្រប់គ្រងទីតាំងឈ្មោះនាយកសាលា -->
+                        <div class="grid grid-cols-2 gap-4 mb-3 pb-3 border-b border-gray-200">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-1 flex justify-between">ឈ្មោះនាយក
+                                    (X) <span id="val-principal-x" class="text-red-600">80</span></label>
+                                <input type="range" id="ctrl-principal-x" min="-100" max="100" value="80"
+                                    class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-1 flex justify-between">ឈ្មោះនាយក
+                                    (Y) <span id="val-principal-y" class="text-red-600">-25</span></label>
+                                <input type="range" id="ctrl-principal-y" min="-100" max="100" value="-25"
+                                    class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                            </div>
+                        </div>
+
+                        <!-- គ្រប់គ្រងទីតាំងហត្ថលេខា -->
+                        <div class="grid grid-cols-2 gap-4 mb-3 pb-3 border-b border-gray-200">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-1 flex justify-between">ហត្ថលេខា
+                                    (X) <span id="val-sign-x" class="text-blue-600">50</span></label>
+                                <input type="range" id="ctrl-sign-x" min="-100" max="100" value="50"
+                                    class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-1 flex justify-between">ហត្ថលេខា
+                                    (Y) <span id="val-sign-y" class="text-blue-600">-5</span></label>
+                                <input type="range" id="ctrl-sign-y" min="-100" max="100" value="-5"
+                                    class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                            </div>
+                        </div>
+
+                        <!-- គ្រប់គ្រងទីតាំងត្រា -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-1 flex justify-between">ត្រា (X)
+                                    <span id="val-stamp-x" class="text-red-600">0</span></label>
+                                <input type="range" id="ctrl-stamp-x" min="-150" max="150" value="0"
+                                    class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-1 flex justify-between">ត្រា (Y)
+                                    <span id="val-stamp-y" class="text-red-600">-15</span></label>
+                                <input type="range" id="ctrl-stamp-y" min="-150" max="150" value="-15"
+                                    class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Right Panel: Active Live Preview -->
+            <section class="w-full lg:w-1/2 flex flex-col items-center overflow-x-auto pb-4">
+                <div class="w-full flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-gray-700 font-moul">ការបង្ហាញជាមុន (សិស្សកំពុងជ្រើសរើស)</h3>
+                </div>
+
+                <div id="student-card-preview"
+                    class="card-container relative w-[480px] h-[680px] bg-[#eef6fc] shrink-0 shadow-2xl overflow-hidden flex flex-col">
+
+                    <div class="absolute inset-1 border border-blue-300 pointer-events-none z-10"></div>
+                    <div class="absolute inset-2 border border-blue-200 pointer-events-none z-10"></div>
+
+                    <div
+                        class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.06] z-0">
+                        <img id="out-watermark" src="" alt=""
+                            class="w-[300px] h-[300px] object-contain grayscale hidden" />
+                    </div>
+
+                    <div class="relative z-20 flex-grow p-6 flex flex-col">
+
+                        <div class="text-center relative">
+                            <h1 class="font-moul text-blue-800 text-[20px] tracking-wide mb-1">ព្រះរាជាណាចក្រកម្ពុជា
+                            </h1>
+                            <h2 class="font-moul text-blue-800 text-[18px] tracking-wider mb-2">ជាតិ សាសនា ព្រះមហាក្សត្រ
+                            </h2>
+
+                            <div class="flex justify-center items-center gap-2 mb-4">
+                                <div class="h-[1px] w-16 bg-gray-500"></div>
+                                <span class="text-gray-500 text-xs">❖</span>
+                                <div class="h-[1px] w-16 bg-gray-500"></div>
+                            </div>
+
+                            <div class="absolute top-8 left-0 w-20 h-20 flex items-center justify-center">
+                                <img id="out-logo" src="" alt="Logo"
+                                    class="max-w-full max-h-full object-contain hidden" />
+                                <div id="out-logo-placeholder"
+                                    class="w-16 h-16 border border-blue-300 rounded-full flex flex-col items-center justify-center text-[10px] text-blue-500 bg-white shadow-sm font-battambang">
+                                    <span>Logo</span>
+                                </div>
+                            </div>
+
+                            <h3 id="out-department" class="font-moul text-blue-700 text-[16px] leading-tight mb-1">
+                                មន្ទីរអប់រំ យុវជន និងកីឡា</h3>
+                            <h3 id="out-province"
+                                class="font-moul text-blue-700 text-[16px] leading-tight border-b-2 border-blue-300 inline-block pb-1 px-4">
+                                ខេត្តតាកែវ</h3>
+                        </div>
+
+                        <div class="text-center mt-6 mb-4">
+                            <h1 class="font-moul text-blue-600 text-[26px] mb-2"
+                                style="text-shadow: 1px 1px 0px #fff, 2px 2px 3px rgba(0,0,0,0.15);">
+                                ប័ណ្ណសម្គាល់ខ្លួនសិស្ស
+                            </h1>
+                            <div class="font-bold text-gray-800 text-[15px] space-y-1">
+                                <p>ឆ្នាំសិក្សា <span id="out-year">២០២៥ - ២០២៦</span></p>
+                                <p>ថ្នាក់ទី "<span id="out-grade">១២ ក</span>"</p>
+                            </div>
+                        </div>
+
+                        <div class="px-4 mt-2 space-y-2 flex-grow text-[16px]">
+                            <div class="flex items-end">
+                                <span class="font-moul text-blue-900 w-44">គោត្តនាម និងនាម</span>
+                                <span
+                                    class="font-bold text-red-600 flex-grow border-b border-dotted border-gray-400 leading-tight pb-1">
+                                    ៖ <span id="out-name"></span>
+                                </span>
+                            </div>
+                            <div class="flex items-end">
+                                <span class="font-moul text-blue-900 w-44">ភេទ</span>
+                                <span
+                                    class="font-bold text-blue-800 flex-grow border-b border-dotted border-gray-400 leading-tight pb-1">
+                                    ៖ <span id="out-gender"></span>
+                                </span>
+                            </div>
+                            <div class="flex items-end">
+                                <span class="font-moul text-blue-900 w-44">ថ្ងៃខែឆ្នាំកំណើត</span>
+                                <span
+                                    class="font-bold text-blue-800 flex-grow border-b border-dotted border-gray-400 leading-tight pb-1">
+                                    ៖ <span id="out-dob"></span>
+                                </span>
+                            </div>
+                            <div class="flex items-end">
+                                <span class="font-moul text-blue-900 w-44">អត្តលេខ</span>
+                                <span
+                                    class="font-bold text-blue-800 flex-grow border-b border-dotted border-gray-400 leading-tight pb-1">
+                                    ៖ <span id="out-id"></span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 flex justify-between items-end relative pb-4">
+                            <div
+                                class="w-[110px] h-[145px] border-2 border-teal-600 bg-white ml-4 mb-5 flex items-center justify-center relative overflow-hidden z-20 shadow-sm">
+                                <img id="out-photo" src="" alt="Student" class="w-full h-full object-cover hidden" />
+                                <div id="out-photo-placeholder" class="text-center text-teal-700">
+                                    <p class="font-moul text-sm">រូបថត</p>
+                                    <p class="font-battambang text-sm mt-1">៤x៦</p>
+                                </div>
+                            </div>
+
+                            <div class="text-center w-[65%] flex flex-col items-center z-20">
+                                <p class="font-moul text-blue-900 text-[14px] mb-1">
+                                    ជាសិស្សសាលា <span id="out-school" class="text-red-600 ml-1">ហ៊ុនសែន តាកែវ</span>
+                                </p>
+                                <p id="out-date-kh" class="text-[11px] text-gray-800 mb-0.5">ថ្ងៃសៅរ៍ ១៥កើត ខែមិគសិរ
+                                    ឆ្នាំខាល ចត្វាស័ក ព.ស. ២៥៦៦</p>
+                                <p id="out-date-en" class="text-[11px] text-gray-800 mb-1">ថ្ងៃទី២១ ខែមិថុនា ឆ្នាំ២០២៦
+                                </p>
+                                <p class="font-moul text-black text-[14px]">នាយកសាលា</p>
+
+                                <div class="h-16 mt-2 relative w-full flex justify-center items-center">
+                                    <!-- Stamp & Sign Images -->
+                                    <img id="out-stamp" src="" alt="Stamp"
+                                        class="absolute w-[110px] h-[110px] object-contain hidden opacity-80"
+                                        style="transform: translate(0px, -15px); z-index: 1;" />
+                                    <img id="out-sign" src="" alt="Signature"
+                                        class="absolute w-[120px] h-[60px] object-contain hidden"
+                                        style="transform: translate(50px, -5px); z-index: 2;" />
+                                </div>
+                                <!-- ឈ្មោះនាយកសាលាពណ៌ក្រហម (Font Moul) -->
+                                <p id="out-principal" class="font-moul text-red-600 text-[14px] mt-1 relative z-10"
+                                    style="transform: translate(80px, -25px);"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Bottom Section: All Cards Grid (Hidden initially) -->
+        <section id="all-cards-section" class="w-full mt-8 border-t-2 border-gray-200 pt-8 hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-blue-900 font-moul">កាតសិស្សទាំងអស់ (<span
+                        id="total-cards-count">០</span> នាក់)</h2>
+                <p class="text-gray-500 font-battambang text-sm">បង្ហាញកាតទាំងអស់ដោយស្វ័យប្រវត្តិ។
+                    ចុចលើកាតណាមួយដើម្បីកែប្រែនិងបញ្ចូលរូបថត។</p>
+            </div>
+
+            <!-- Grid Container -->
+            <div id="cards-grid" class="flex flex-wrap gap-8 justify-center items-start">
+                <!-- Cloned cards will be injected here -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Toast Notification -->
+    <div id="toast"
+        class="fixed bottom-4 right-4 bg-gray-900 text-white px-6 py-3 rounded-lg shadow-2xl font-battambang transition-opacity duration-300 opacity-0 pointer-events-none z-50 flex items-center gap-3">
+        <span id="toast-msg">ជោគជ័យ!</span>
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- State Variables ---
+            let studentDataArray = [];
+            let currentStudentIndex = -1; // -1 means manually editing without CSV
+            let globalLogoDataUrl = null;
+            let globalSignDataUrl = null;
+            let globalStampDataUrl = null;
+
+            // --- Form Data Binding ---
+            const bindings = [
+                { in: 'in-department', out: 'out-department' },
+                { in: 'in-province', out: 'out-province' },
+                { in: 'in-year', out: 'out-year' },
+                { in: 'in-school', out: 'out-school' },
+                { in: 'in-name', out: 'out-name' },
+                { in: 'in-gender', out: 'out-gender' },
+                { in: 'in-grade', out: 'out-grade' },
+                { in: 'in-dob', out: 'out-dob' },
+                { in: 'in-id', out: 'out-id' },
+                { in: 'in-date-kh', out: 'out-date-kh' },
+                { in: 'in-date-en', out: 'out-date-en' },
+                { in: 'in-principal', out: 'out-principal' }
+            ];
+
+            const globalBindings = ['in-department', 'in-province', 'in-year', 'in-school', 'in-date-kh', 'in-date-en', 'in-principal'];
+
+            bindings.forEach(binding => {
+                const inputEl = document.getElementById(binding.in);
+                const outputEl = document.getElementById(binding.out);
+                inputEl.addEventListener('input', (e) => {
+                    outputEl.textContent = e.target.value;
+
+                    // Update grid cards if global fields change
+                    if (globalBindings.includes(binding.in) && studentDataArray.length > 0) {
+                        updateAllGridCardsGlobalFields(binding.out, e.target.value);
+                    }
+                });
+            });
+
+            // Update array when user types directly in individual fields
+            document.querySelectorAll('.student-input').forEach(input => {
+                input.addEventListener('input', (e) => {
+                    if (currentStudentIndex >= 0 && studentDataArray[currentStudentIndex]) {
+                        const key = e.target.getAttribute('data-key');
+                        studentDataArray[currentStudentIndex][key] = e.target.value;
+                        updateDropdownText(currentStudentIndex);
+                        updateGridCardField(currentStudentIndex, `out-${key}`, e.target.value);
+                    }
+                });
+            });
+
+            // --- Toast Message ---
+            function showToast(message) {
+                const toast = document.getElementById('toast');
+                document.getElementById('toast-msg').textContent = message;
+                toast.classList.remove('opacity-0');
+                toast.classList.add('opacity-100');
+                setTimeout(() => {
+                    toast.classList.remove('opacity-100');
+                    toast.classList.add('opacity-0');
+                }, 3500);
+            }
+
+            // --- Image Upload Logic ---
+
+            // Logo Upload (Global)
+            document.getElementById('in-logo').addEventListener('change', function (e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (event) {
+                        globalLogoDataUrl = event.target.result;
+
+                        // Active card
+                        document.getElementById('out-logo').src = globalLogoDataUrl;
+                        document.getElementById('out-logo').classList.remove('hidden');
+                        document.getElementById('out-logo-placeholder').classList.add('hidden');
+                        document.getElementById('out-watermark').src = globalLogoDataUrl;
+                        document.getElementById('out-watermark').classList.remove('hidden');
+
+                        // Grid cards
+                        if (studentDataArray.length > 0) {
+                            for (let i = 0; i < studentDataArray.length; i++) {
+                                const logoImg = document.getElementById(`out-logo-grid-${i}`);
+                                const watermarkImg = document.getElementById(`out-watermark-grid-${i}`);
+                                if (logoImg) {
+                                    logoImg.src = globalLogoDataUrl;
+                                    logoImg.classList.remove('hidden');
+                                    document.getElementById(`out-logo-placeholder-grid-${i}`).classList.add('hidden');
+                                }
+                                if (watermarkImg) {
+                                    watermarkImg.src = globalLogoDataUrl;
+                                    watermarkImg.classList.remove('hidden');
+                                }
+                            }
+                        }
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // Signature Upload (Global)
+            document.getElementById('in-sign').addEventListener('change', function (e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (event) {
+                        globalSignDataUrl = event.target.result;
+                        document.getElementById('out-sign').src = globalSignDataUrl;
+                        document.getElementById('out-sign').classList.remove('hidden');
+                        if (studentDataArray.length > 0) updateAllGridCardsSignAndStamp();
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // Stamp Upload (Global)
+            document.getElementById('in-stamp').addEventListener('change', function (e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (event) {
+                        globalStampDataUrl = event.target.result;
+                        document.getElementById('out-stamp').src = globalStampDataUrl;
+                        document.getElementById('out-stamp').classList.remove('hidden');
+                        if (studentDataArray.length > 0) updateAllGridCardsSignAndStamp();
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // --- Position Controls Logic ---
+            function updateTransform(elementId, x, y) {
+                const el = document.getElementById(elementId);
+                if (el) el.style.transform = `translate(${x}px, ${y}px)`;
+            }
+
+            // សារ៉េទីតាំងឈ្មោះនាយកសាលា
+            document.getElementById('ctrl-principal-x').addEventListener('input', (e) => {
+                document.getElementById('val-principal-x').textContent = e.target.value;
+                updateTransform('out-principal', e.target.value, document.getElementById('ctrl-principal-y').value);
+                if (studentDataArray.length > 0) updateAllGridCardsSignAndStampPosition('out-principal', e.target.value, document.getElementById('ctrl-principal-y').value);
+            });
+
+            document.getElementById('ctrl-principal-y').addEventListener('input', (e) => {
+                document.getElementById('val-principal-y').textContent = e.target.value;
+                updateTransform('out-principal', document.getElementById('ctrl-principal-x').value, e.target.value);
+                if (studentDataArray.length > 0) updateAllGridCardsSignAndStampPosition('out-principal', document.getElementById('ctrl-principal-x').value, e.target.value);
+            });
+
+            document.getElementById('ctrl-sign-x').addEventListener('input', (e) => {
+                document.getElementById('val-sign-x').textContent = e.target.value;
+                updateTransform('out-sign', e.target.value, document.getElementById('ctrl-sign-y').value);
+                if (studentDataArray.length > 0) updateAllGridCardsSignAndStampPosition('out-sign', e.target.value, document.getElementById('ctrl-sign-y').value);
+            });
+
+            document.getElementById('ctrl-sign-y').addEventListener('input', (e) => {
+                document.getElementById('val-sign-y').textContent = e.target.value;
+                updateTransform('out-sign', document.getElementById('ctrl-sign-x').value, e.target.value);
+                if (studentDataArray.length > 0) updateAllGridCardsSignAndStampPosition('out-sign', document.getElementById('ctrl-sign-x').value, e.target.value);
+            });
+
+            document.getElementById('ctrl-stamp-x').addEventListener('input', (e) => {
+                document.getElementById('val-stamp-x').textContent = e.target.value;
+                updateTransform('out-stamp', e.target.value, document.getElementById('ctrl-stamp-y').value);
+                if (studentDataArray.length > 0) updateAllGridCardsSignAndStampPosition('out-stamp', e.target.value, document.getElementById('ctrl-stamp-y').value);
+            });
+
+            document.getElementById('ctrl-stamp-y').addEventListener('input', (e) => {
+                document.getElementById('val-stamp-y').textContent = e.target.value;
+                updateTransform('out-stamp', document.getElementById('ctrl-stamp-x').value, e.target.value);
+                if (studentDataArray.length > 0) updateAllGridCardsSignAndStampPosition('out-stamp', document.getElementById('ctrl-stamp-x').value, e.target.value);
+            });
+
+            // Student Photo Upload (Saved per student)
+            document.getElementById('in-photo').addEventListener('change', function (e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (event) {
+                        const imgUrl = event.target.result;
+                        displayStudentPhoto(imgUrl, 'out-photo', 'out-photo-placeholder');
+
+                        if (currentStudentIndex >= 0 && studentDataArray.length > 0 && studentDataArray[currentStudentIndex]) {
+                            studentDataArray[currentStudentIndex].photoDataUrl = imgUrl;
+                            updateDropdownText(currentStudentIndex);
+                            updateGridCardPhoto(currentStudentIndex, imgUrl);
+                            showToast('រក្សាទុករូបថតសម្រាប់សិស្សនេះរួចរាល់!');
+                        }
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            function displayStudentPhoto(imgUrl, imgId, placeholderId) {
+                const imgEl = document.getElementById(imgId);
+                const placeholder = document.getElementById(placeholderId);
+                if (imgUrl) {
+                    imgEl.src = imgUrl;
+                    imgEl.classList.remove('hidden');
+                    if (placeholder) placeholder.classList.add('hidden');
+                } else {
+                    imgEl.src = '';
+                    imgEl.classList.add('hidden');
+                    if (placeholder) placeholder.classList.remove('hidden');
+                }
+            }
+
+
+            // ==========================================
+            // --- CSV & DROPDOWN LOGIC ---
+            // ==========================================
+
+            document.getElementById('btn-csv-template').addEventListener('click', () => {
+                const csvHeader = "\uFEFFname,gender,grade,dob,studentid\n";
+                const sampleData = "សុខ សាន់,ប្រុស,១២ ក,០១ មករា ២០០៨,១២៣៤៥\nមាស សុជាតា,ស្រី,១២ ក,១៥ កុម្ភៈ ២០០៨,១២៣៤៦";
+                const blob = new Blob([csvHeader + sampleData], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = "student_template.csv";
+                link.click();
+            });
+
+            document.getElementById('in-csv').addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    parseCSV(event.target.result);
+                    e.target.value = ''; // Reset
+                };
+                reader.readAsText(file);
+            });
+
+            document.getElementById('btn-clear-data').addEventListener('click', () => {
+                studentDataArray = [];
+                currentStudentIndex = -1;
+                document.getElementById('student-selector-container').classList.add('hidden');
+                document.getElementById('btn-download-pdf').classList.add('hidden');
+                document.getElementById('btn-clear-data').classList.add('hidden');
+                document.getElementById('all-cards-section').classList.add('hidden');
+                document.getElementById('cards-grid').innerHTML = '';
+
+                document.querySelectorAll('.student-input').forEach(input => input.value = '');
+                document.querySelectorAll('.student-input').forEach(input => input.dispatchEvent(new Event('input')));
+                displayStudentPhoto(null, 'out-photo', 'out-photo-placeholder');
+                showToast("ទិន្នន័យត្រូវបានសម្អាតរួចរាល់!");
+            });
+
+            function parseCSV(text) {
+                const lines = text.replace(/\r/g, '').split('\n').filter(line => line.trim() !== '');
+                if (lines.length < 2) return showToast("ឯកសារ CSV គ្មានទិន្នន័យទេ!");
+
+                const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+                studentDataArray = [];
+
+                for (let i = 1; i < lines.length; i++) {
+                    const values = lines[i].split(',').map(v => v.trim());
+                    if (values.length >= headers.length) {
+                        let student = { photoDataUrl: null }; // Initialize photo storage
+                        headers.forEach((header, index) => {
+                            student[header] = values[index];
+                        });
+                        studentDataArray.push(student);
+                    }
+                }
+
+                if (studentDataArray.length > 0) {
+                    populateDropdown();
+                    document.getElementById('student-selector-container').classList.remove('hidden');
+                    document.getElementById('btn-download-pdf').classList.remove('hidden');
+                    document.getElementById('btn-clear-data').classList.remove('hidden');
+
+                    renderAllCardsGrid();
+
+                    currentStudentIndex = 0;
+                    document.getElementById('student-dropdown').value = 0;
+                    loadStudentIntoForm(0);
+                    showToast(`ទាញយកឈ្មោះសិស្ស ${studentDataArray.length} នាក់ បានជោគជ័យ!`);
+                }
+            }
+
+            function populateDropdown() {
+                const select = document.getElementById('student-dropdown');
+                select.innerHTML = '';
+                studentDataArray.forEach((student, index) => {
+                    const option = document.createElement('option');
+                    option.value = index;
+                    const hasPhoto = student.photoDataUrl ? '[មានរូប]' : '[គ្មានរូប]';
+                    option.textContent = `${index + 1}. ${student.name} - ${hasPhoto}`;
+                    select.appendChild(option);
+                });
+            }
+
+            function updateDropdownText(index) {
+                const select = document.getElementById('student-dropdown');
+                const option = select.options[index];
+                if (option) {
+                    const student = studentDataArray[index];
+                    const hasPhoto = student.photoDataUrl ? '[មានរូប]' : '[គ្មានរូប]';
+                    option.textContent = `${index + 1}. ${student.name} - ${hasPhoto}`;
+                }
+            }
+
+            document.getElementById('student-dropdown').addEventListener('change', (e) => {
+                currentStudentIndex = parseInt(e.target.value);
+                loadStudentIntoForm(currentStudentIndex);
+
+                // Highlight corresponding card in grid
+                const targetCard = document.getElementById(`grid-card-${currentStudentIndex}`);
+                if (targetCard) {
+                    targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    targetCard.classList.add('ring-4', 'ring-blue-500', 'ring-offset-4');
+                    setTimeout(() => {
+                        targetCard.classList.remove('ring-4', 'ring-blue-500', 'ring-offset-4');
+                    }, 1500);
+                }
+            });
+
+            function loadStudentIntoForm(index) {
+                const student = studentDataArray[index];
+                if (!student) return;
+
+                const mapping = {
+                    'name': 'in-name',
+                    'gender': 'in-gender',
+                    'grade': 'in-grade',
+                    'dob': 'in-dob',
+                    'studentid': 'in-id'
+                };
+
+                for (const [csvKey, inputId] of Object.entries(mapping)) {
+                    if (student[csvKey] !== undefined) {
+                        const inputEl = document.getElementById(inputId);
+                        inputEl.value = student[csvKey];
+                        inputEl.dispatchEvent(new Event('input'));
+                    }
+                }
+
+                displayStudentPhoto(student.photoDataUrl, 'out-photo', 'out-photo-placeholder');
+                document.getElementById('in-photo').value = '';
+            }
+
+            // ==========================================
+            // --- GRID VIEW LOGIC ---
+            // ==========================================
+
+            function renderAllCardsGrid() {
+                const gridContainer = document.getElementById('cards-grid');
+                gridContainer.innerHTML = '';
+
+                const activeCardTemplate = document.getElementById('student-card-preview');
+                const section = document.getElementById('all-cards-section');
+                document.getElementById('total-cards-count').textContent = studentDataArray.length;
+
+                section.classList.remove('hidden');
+
+                const dept = document.getElementById('in-department').value;
+                const prov = document.getElementById('in-province').value;
+                const year = document.getElementById('in-year').value;
+                const school = document.getElementById('in-school').value;
+                const dateKh = document.getElementById('in-date-kh').value;
+                const dateEn = document.getElementById('in-date-en').value;
+                const principalName = document.getElementById('in-principal').value;
+
+                studentDataArray.forEach((student, index) => {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'card-grid-item cursor-pointer transition-transform hover:shadow-2xl relative rounded-xl';
+                    wrapper.id = `grid-card-${index}`;
+                    wrapper.title = `ចុចដើម្បីកែប្រែទិន្នន័យ ${student.name}`;
+
+                    const label = document.createElement('div');
+                    label.className = 'absolute -top-10 left-0 bg-blue-800 text-white px-4 py-2 rounded-t-lg font-battambang text-xl font-bold w-full text-center z-30 flex justify-between items-center';
+                    label.innerHTML = `<span>សិស្សទី ${index + 1}: <span id="label-name-${index}">${student.name}</span></span> <span id="label-photo-${index}" class="text-sm bg-white text-blue-800 px-2 rounded">${student.photoDataUrl ? 'មានរូបថត' : 'គ្មានរូបថត'}</span>`;
+                    wrapper.appendChild(label);
+
+                    const cardClone = activeCardTemplate.cloneNode(true);
+                    cardClone.id = `card-clone-${index}`;
+
+                    // Unique IDs for clone elements
+                    cardClone.querySelectorAll('[id]').forEach(el => {
+                        el.id = `${el.id}-grid-${index}`;
+                    });
+
+                    // Set data
+                    cardClone.querySelector(`#out-department-grid-${index}`).textContent = dept;
+                    cardClone.querySelector(`#out-province-grid-${index}`).textContent = prov;
+                    cardClone.querySelector(`#out-year-grid-${index}`).textContent = year;
+                    cardClone.querySelector(`#out-school-grid-${index}`).textContent = school;
+                    cardClone.querySelector(`#out-date-kh-grid-${index}`).textContent = dateKh;
+                    cardClone.querySelector(`#out-date-en-grid-${index}`).textContent = dateEn;
+                    cardClone.querySelector(`#out-principal-grid-${index}`).textContent = principalName;
+
+                    cardClone.querySelector(`#out-name-grid-${index}`).textContent = student.name || '';
+                    cardClone.querySelector(`#out-gender-grid-${index}`).textContent = student.gender || '';
+                    cardClone.querySelector(`#out-grade-grid-${index}`).textContent = student.grade || '';
+                    cardClone.querySelector(`#out-dob-grid-${index}`).textContent = student.dob || '';
+                    cardClone.querySelector(`#out-id-grid-${index}`).textContent = student.studentid || '';
+
+                    // Clone Sign and Stamp states
+                    const signImg = cardClone.querySelector(`#out-sign-grid-${index}`);
+                    const stampImg = cardClone.querySelector(`#out-stamp-grid-${index}`);
+
+                    if (globalSignDataUrl) {
+                        signImg.src = globalSignDataUrl;
+                        signImg.classList.remove('hidden');
+                    }
+                    signImg.style.transform = `translate(${document.getElementById('ctrl-sign-x').value}px, ${document.getElementById('ctrl-sign-y').value}px)`;
+
+                    if (globalStampDataUrl) {
+                        stampImg.src = globalStampDataUrl;
+                        stampImg.classList.remove('hidden');
+                    }
+                    stampImg.style.transform = `translate(${document.getElementById('ctrl-stamp-x').value}px, ${document.getElementById('ctrl-stamp-y').value}px)`;
+
+                    // Clone Principal Name position state
+                    const principalText = cardClone.querySelector(`#out-principal-grid-${index}`);
+                    if (principalText) {
+                        principalText.style.transform = `translate(${document.getElementById('ctrl-principal-x').value}px, ${document.getElementById('ctrl-principal-y').value}px)`;
+                    }
+
+                    if (globalLogoDataUrl) {
+                        const logoImg = cardClone.querySelector(`#out-logo-grid-${index}`);
+                        const watermarkImg = cardClone.querySelector(`#out-watermark-grid-${index}`);
+                        logoImg.src = globalLogoDataUrl;
+                        logoImg.classList.remove('hidden');
+                        watermarkImg.src = globalLogoDataUrl;
+                        watermarkImg.classList.remove('hidden');
+                        cardClone.querySelector(`#out-logo-placeholder-grid-${index}`).classList.add('hidden');
+                    }
+
+                    if (student.photoDataUrl) {
+                        const photoImg = cardClone.querySelector(`#out-photo-grid-${index}`);
+                        photoImg.src = student.photoDataUrl;
+                        photoImg.classList.remove('hidden');
+                        cardClone.querySelector(`#out-photo-placeholder-grid-${index}`).classList.add('hidden');
+                    }
+
+                    // Click to edit
+                    wrapper.addEventListener('click', () => {
+                        document.getElementById('student-dropdown').value = index;
+                        currentStudentIndex = index;
+                        loadStudentIntoForm(index);
+                        document.getElementById('student-form-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        showToast(`កំពុងកែប្រែទិន្នន័យសិស្ស: ${student.name}`);
+                    });
+
+                    wrapper.appendChild(cardClone);
+                    gridContainer.appendChild(wrapper);
+                });
+            }
+
+            // Grid updaters
+            function updateAllGridCardsGlobalFields(fieldId, value) {
+                for (let i = 0; i < studentDataArray.length; i++) {
+                    const el = document.getElementById(`${fieldId}-grid-${i}`);
+                    if (el) el.textContent = value;
+                }
+            }
+
+            function updateAllGridCardsSignAndStamp() {
+                for (let i = 0; i < studentDataArray.length; i++) {
+                    const signImg = document.getElementById(`out-sign-grid-${i}`);
+                    const stampImg = document.getElementById(`out-stamp-grid-${i}`);
+                    if (signImg && globalSignDataUrl) {
+                        signImg.src = globalSignDataUrl;
+                        signImg.classList.remove('hidden');
+                    }
+                    if (stampImg && globalStampDataUrl) {
+                        stampImg.src = globalStampDataUrl;
+                        stampImg.classList.remove('hidden');
+                    }
+                }
+            }
+
+            function updateAllGridCardsSignAndStampPosition(baseId, x, y) {
+                for (let i = 0; i < studentDataArray.length; i++) {
+                    const el = document.getElementById(`${baseId}-grid-${i}`);
+                    if (el) el.style.transform = `translate(${x}px, ${y}px)`;
+                }
+            }
+
+            function updateGridCardField(index, fieldId, value) {
+                const el = document.getElementById(`${fieldId}-grid-${index}`);
+                if (el) el.textContent = value;
+
+                if (fieldId === 'out-name') {
+                    const labelName = document.getElementById(`label-name-${index}`);
+                    if (labelName) labelName.textContent = value;
+                }
+            }
+
+            function updateGridCardPhoto(index, imgUrl) {
+                const photoImg = document.getElementById(`out-photo-grid-${index}`);
+                if (imgUrl && photoImg) {
+                    photoImg.src = imgUrl;
+                    photoImg.classList.remove('hidden');
+                    document.getElementById(`out-photo-placeholder-grid-${index}`).classList.add('hidden');
+
+                    const labelPhoto = document.getElementById(`label-photo-${index}`);
+                    if (labelPhoto) labelPhoto.textContent = 'មានរូបថត';
+                }
+            }
+
+            // ==========================================
+            // --- DOWNLOAD LOGIC (PNG & PDF) ---
+            // ==========================================
+
+            // Download Single PNG
+            document.getElementById('btn-download-png').addEventListener('click', () => {
+                const card = document.getElementById('student-card-preview');
+                const name = document.getElementById('in-name').value || 'Card';
+
+                showToast('កំពុងរៀបចំទាញយក PNG...');
+
+                setTimeout(() => {
+                    html2canvas(card, {
+                        scale: 3,
+                        useCORS: true,
+                        backgroundColor: '#eef6fc'
+                    }).then(canvas => {
+                        const link = document.createElement('a');
+                        link.download = `Student_ID_${name}.png`;
+                        link.href = canvas.toDataURL('image/png');
+                        link.click();
+                        showToast(`ទាញយកប័ណ្ណសិស្សឈ្មោះ ${name} បានជោគជ័យ!`);
+                    });
+                }, 200);
+            });
+
+            // Download All PDF
+            document.getElementById('btn-download-pdf').addEventListener('click', async () => {
+                if (studentDataArray.length === 0) return;
+
+                const { jsPDF } = window.jspdf;
+                // PDF dimensions matching ID card ratio (approx 54x86mm standard)
+                // Using pt, 480x680 ratio -> roughly 2.1 x 3.3 inches
+                const pdf = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'px',
+                    format: [480, 680]
+                });
+
+                const loadingOverlay = document.getElementById('loading-overlay');
+                const loadingCurrent = document.getElementById('loading-current');
+                document.getElementById('loading-total').textContent = studentDataArray.length;
+                loadingOverlay.classList.remove('hidden');
+                loadingOverlay.classList.add('flex');
+
+                try {
+                    for (let i = 0; i < studentDataArray.length; i++) {
+                        loadingCurrent.textContent = i + 1;
+
+                        // We capture from the grid clones to ensure we get the right data per student
+                        const cardElement = document.getElementById(`card-clone-${i}`);
+
+                        if (cardElement) {
+                            // Temporarily remove transform to get clean canvas
+                            const wrapper = document.getElementById(`grid-card-${i}`);
+                            const originalTransform = wrapper.style.transform;
+                            wrapper.style.transform = 'none';
+
+                            const canvas = await html2canvas(cardElement, {
+                                scale: 2, // 2 is enough for good PDF quality, 3 might make file too large
+                                useCORS: true,
+                                backgroundColor: '#eef6fc'
+                            });
+
+                            wrapper.style.transform = originalTransform; // Restore
+
+                            const imgData = canvas.toDataURL('image/jpeg', 0.95);
+
+                            if (i > 0) {
+                                pdf.addPage([480, 680], 'portrait');
+                            }
+
+                            pdf.addImage(imgData, 'JPEG', 0, 0, 480, 680);
+                        }
+                    }
+
+                    const schoolName = document.getElementById('in-school').value || 'School';
+                    const grade = document.getElementById('in-grade').value || 'Grade';
+                    pdf.save(`Student_ID_Cards_${schoolName}_${grade}.pdf`);
+                    showToast('ទាញយកឯកសារ PDF រួចរាល់!');
+
+                } catch (error) {
+                    console.error("PDF Generation Error:", error);
+                    showToast('មានបញ្ហាក្នុងការបង្កើត PDF!');
+                } finally {
+                    loadingOverlay.classList.add('hidden');
+                    loadingOverlay.classList.remove('flex');
+                }
+            });
+
+        });
+    </script>
+</body>
+
+</html>
